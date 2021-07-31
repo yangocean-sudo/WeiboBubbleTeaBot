@@ -21,7 +21,7 @@ API_SECRET = 'Your Secret'
 REDIRECT_URI = 'Your URI'
 access = 'Your Access Token'
 code = 'Your code'
-
+taskLog = open('TaskLog.txt', 'a')
 
 def logInWeibo():
 
@@ -42,9 +42,9 @@ def logInWeibo():
 
 
 def getMessageId():
+    global taskLog
     # 官方API，可以查看最新一个@自己账号的微博
-    responseHandler = urllib.request.urlopen(
-        'https://api.weibo.com/2/statuses/mentions.json?count=1&access_token=' + access, context=context)
+    responseHandler = urllib.request.urlopen('https://api.weibo.com/2/statuses/mentions.json?count=1&access_token=' + access, context=context)
     jsonData = json.loads(responseHandler.read().decode('utf-8'))
     # 第一层字典
     statuses = jsonData['statuses'][0]
@@ -53,53 +53,66 @@ def getMessageId():
     # 发布微博的人
     currentMessageUser = statuses['user']
     UserName = str(currentMessageUser['screen_name'])
-    print("用户名是: ", UserName, '\n微博Id是: ', currentMessageId)
+    taskLog.write("用户名是: " + UserName + '\n微博Id是: ' + currentMessageId + '\n')
+    print("用户名是: " + UserName + '\n微博Id是: ' + currentMessageId)
     return currentMessageId
 
 
 # 输入最新一条微博的ID
 def writeIdIntoNotebook(messageId):
+    global taskLog
     messageId = str(messageId)
-    print('Writing current message id ' + messageId + ' to file')
     # 查看有无新微博ID
     messageIdWriter = open('current-message-id.txt', 'r')
-    line = messageIdWriter.read()
+    line = messageIdWriter.readlines()
     messageIdWriter.close()
-    if line == '':
-        print('空艾特列表')
-        messageIdWriter = open('current-message-id.txt', 'w')
-        messageIdWriter.write(messageId)
+    if not line:
+        taskLog.write("空列表" + "\n")
+        print("空列表")
+        taskLog.write('写入Id： ' + messageId + "\n")
+        print('写入Id： ' + messageId)
+        messageIdWriter = open('current-message-id.txt', 'a')
+        messageIdWriter.write(messageId + "\n")
         messageIdWriter.close()
         return 0
-    elif line == messageId:
-        print("没有新消息")
-        return 1
     else:
-        print('有新消息')
-        messageIdWriter = open('current-message-id.txt', 'w')
-        messageIdWriter.write(messageId)
-        messageIdWriter.close()
-        return 2
+        for i in range(len(line)):
+            line[i] = line[i].replace('\n', '')
+        if messageId in line:
+            taskLog.write("没有新消息" + "\n")
+            print("没有新消息")
+            return 1
+        else:
+            print('写入Id： ' + messageId)
+            messageIdWriter = open('current-message-id.txt', 'a')
+            messageIdWriter.write(messageId + "\n")
+            messageIdWriter.close()
+            taskLog.write("有新消息" + "\n")
+            print("有新消息")
+            return 2
 
 
 def replyMessageToUser(messageId):
+    global taskLog
     text = randomBubbleTea()
     postData = urllib.parse.urlencode({'comment': text, 'id': messageId, 'access_token': access}).encode('utf-8')
     try:
         urllib.request.urlopen('https://api.weibo.com/2/comments/create.json', postData, context=context)
-        print("已发送 '", text, "' 至微博ID: ", messageId)
+        taskLog.write("已发送 '" + text + "' 至微博ID: " + messageId + "\n")
+        print("已发送 '" + text + "' 至微博ID: " + messageId)
     except urllib.error.URLError as e:
         if hasattr(e, "code"):
             print(e.code)
+            taskLog.write(e.code)
         if hasattr(e, "reason"):
             print(e.reason)
-
-
+            taskLog.write(e.reason)
 # 查看json数据有哪些
 # for i in jsonData.keys():
 #     print(i)
 # for i in currentMessageUser.keys():
 #     print(i)
+
 
 # 随机的奶茶推荐！
 def randomBubbleTea():
@@ -112,29 +125,44 @@ def randomBubbleTea():
     heyTea = ['多肉葡萄+芋圆波波+玫瑰青 少冰、少糖', '芝芝桃桃+红柚粒+脆波波+芝士换冰淇淋 少冰、正常糖',
               '芝芝芒芒+芝士换冰淇淋+芋圆波波 少冰、少糖', '芝芝莓莓+芦荟粒+芝士换酸奶 少冰、少少糖',
               '奶茶波波冰+黑糖波波 少冰、少少糖', '阿华田波波冰+黑波波换黑糖奶冻 少冰、不另外加糖',
-              '纯绿妍+脆啵啵+红柚果粒 少冰、少少糖', '布甸波波冰+芋圆波波+黑糖奶冻 少冰', '金凤茶王+小丸子+奥利奥 三分糖', '豆豆波波茶+奥利奥 去冰、少糖']
+              '纯绿妍+脆啵啵+红柚果粒 少冰、少少糖', '布甸波波冰+芋圆波波+黑糖奶冻 少冰', '金凤茶王+小丸子 五分糖']
     coco = ['双球冰淇淋红茶+芋头+珍珠 去冰、无糖', '鲜芋茶拿铁+布丁+珍珠 去冰、微糖', '双球冰淇淋草莓+珍珠+椰果 去冰、半糖',
-            '双球冰淇淋抹茶+芋头+珍珠 去冰、三分糖', '茉香奶茶+芋鲜+青稞 +珍珠 去冰、无糖', '鲜百香果双响炮+椰果 少冰、半糖',
+            '双球冰淇淋抹茶+芋头+珍珠 去冰、三分糖', '茉香奶茶+芋鲜+青稞+珍珠 去冰、无糖', '杨枝甘露+椰果 少冰', '鲜百香果双响炮+椰果 少冰、半糖',
             '鲜芋雪冰+珍珠+冰淇淋 无糖', '青茶奶霜+芋头+冰淇淋+珍珠', '莓莓绵雪冰+冰淇淋+珍珠', '红果小姐姐+奶霜 半糖']
+    chaBaiDao = ['桂花酒酿', '招牌芋圆奶茶', '黑糖牛乳波波茶', '杨枝甘露', '琥珀烤糖奶茶', '青心乌龙奶茶', '奥利奥芝士', '金桔柠檬', '杨枝甘露/少冰/三分糖',
+                 '葡萄冻冻和葡萄芝士/芋圆/无糖', '豆乳玉麒麟', '酒酿芋圆奶茶', '粉荔多肉', '茉莉白桃']
+    miXueIceCream = ['柠檬水！', '华夫冰淇淋', '黑糖珍珠圣代', '雪顶咖啡']
     menu.append(a_little)
     menu.append(heyTea)
     menu.append(coco)
-    randomNoOne = random.randint(0, 2)
-    if randomNoOne == 0:
+    menu.append(chaBaiDao)
+    menu.append(miXueIceCream)
+    randomNoOne = random.randint(0, 7)
+    if randomNoOne == 0 or randomNoOne == 1:
         randomNoTwo = random.randint(0, 21)
         text = '推荐一点点: ' + menu[0][randomNoTwo]
         return text
-    elif randomNoOne == 1:
-        randomNoTwo = random.randint(0, 9)
+    elif randomNoOne == 2:
+        randomNoTwo = random.randint(0, 8)
         text = '推荐喜茶: ' + menu[1][randomNoTwo]
         return text
-    elif randomNoOne == 2:
+    elif randomNoOne == 3 or randomNoOne == 4:
         randomNoTwo = random.randint(0, 9)
         text = '推荐COCO: ' + menu[2][randomNoTwo]
+        return text
+    elif randomNoOne == 5 or randomNoOne == 6:
+        randomNoTwo = random.randint(0, 13)
+        text = '推荐茶百道: ' + menu[3][randomNoTwo]
+        return text
+    elif randomNoOne == 7:
+        randomNoTwo = random.randint(0, 3)
+        text = '推荐蜜雪冰城： ' + menu[4][randomNoTwo]
         return text
 
 
 def wait(seconds):
+    global taskLog
+    taskLog.write('wait for ' + str(seconds) + ' seconds' + '\n')
     print('wait for ' + str(seconds) + ' seconds')
     time.sleep(seconds)
 
@@ -142,13 +170,15 @@ def wait(seconds):
 # 程序循环
 def tryToReplyNewMentions():
     while True:
+        global taskLog
         messageId = getMessageId()
         feedback = writeIdIntoNotebook(messageId)
         # 如果有新的微博@，则发送微博
         if feedback == 0 or feedback == 2:
             replyMessageToUser(messageId)
         localtime = time.asctime(time.localtime(time.time()))
-        print("本地时间为 :", localtime)
+        taskLog.write("本地时间为 :" + localtime + '\n')
+        print("本地时间为 :" + localtime)
         wait(60)
 
 
@@ -156,3 +186,4 @@ if __name__ == '__main__':
     logInWeibo()
     wait(10)
     tryToReplyNewMentions()
+    taskLog.close()
