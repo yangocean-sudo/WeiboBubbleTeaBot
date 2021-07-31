@@ -62,10 +62,11 @@ def getMessageId():
 def writeIdIntoNotebook(messageId):
     global taskLog
     messageId = str(messageId)
-    # 查看有无新微博ID
+    # 查看记录文件中有无新ID
     messageIdWriter = open('current-message-id.txt', 'r')
     line = messageIdWriter.readlines()
     messageIdWriter.close()
+    # 如果记录文件为空，就记录新ID
     if not line:
         taskLog.write("空列表" + "\n")
         print("空列表")
@@ -76,12 +77,15 @@ def writeIdIntoNotebook(messageId):
         messageIdWriter.close()
         return 0
     else:
+        # 将txt文件中的ID转化为列表
         for i in range(len(line)):
             line[i] = line[i].replace('\n', '')
+        # 如果新ID在列表里
         if messageId in line:
             taskLog.write("没有新消息" + "\n")
             print("没有新消息")
             return 1
+        # 不在就写入新ID
         else:
             print('写入Id： ' + messageId)
             messageIdWriter = open('current-message-id.txt', 'a')
