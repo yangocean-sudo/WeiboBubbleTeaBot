@@ -171,123 +171,291 @@ def randomBubbleTea():
         text = '推荐蜜雪冰城： ' + menu[4][randomNoTwo]
         return text
 ```
-## 奶茶列表
-### 一点点
-抹茶拿铁 去冰/三分/波霸
+# 8/6更新
+## 获取最新评论
+前几天有人在评论中@bot，但是bot显然不知道如何应对这样的情况，这当然不是用户的问题！于是我们开始更新bot，让他可以回复任意一篇微博中的@bot + 评论。
 
-阿华田 去冰/三分/奶霜
+这次用到的也是官方api：[获取最新的提到当前登陆用户的评论](https://open.weibo.com/wiki/2/comments/mentions)，因为之后的回复需要评论id和微博id两个，所以提取起来更加复杂，我顺便将用户名，用户id，评论内容也获取到了，之后如果要定制用户的个性化推荐的话也提早做好了准备。
+```python
+# 回复评论@
+def getReplyId():
+    # 返回两个值，评论id和原文id
+    reply_list = []
+    # 官方API，可以查看最新一个@自己账号的评论
+    responseHandler = urllib.request.urlopen('https://api.weibo.com/2/comments/mentions.json?count=1&access_token='
+                                             + access, context=context)
+    jsonData = json.loads(responseHandler.read().decode('utf-8'))
+    comments = jsonData["comments"][0]
+    # 评论id
+    comments_Id = str(comments["id"])
+    reply_list.append(comments_Id)
+    # 评论人
+    comments_user = comments["user"]
+    # 评论人名称
+    comments_user_name = comments_user["screen_name"]
+    # 评论人id
+    comments_user_id = str(comments_user["id"])
+    # 评论内容
+    comments_text = comments["text"]
+    status = comments["status"]
+    # 微博原文
+    original_text = status["text"]
+    # 微博id
+    original_text_id = str(status["id"])
+    reply_list.append(original_text_id)
+    # 微博原文用户
+    original_user = status["user"]
+    # 微博原文用户id
+    original_user_id = str(original_user["id"])
+    # 微博原文用户名
+    original_user_name = original_user["screen_name"]
+    print("@我的用户名是: " + comments_user_name + " 用户id是: " + comments_user_id + " 评论内容是: " + comments_text +
+          " 评论ID是: " + comments_Id)
+    taskLog.write("@我的用户名是: " + comments_user_name + " 用户id是: " + comments_user_id + " 评论内容是: " + comments_text
+                  + " 评论ID是: " + comments_Id + "\n")
+    print("原文用户名是: " + original_user_name + " 用户id是:" + original_user_id + " 微博内容是: " + original_text,
+          " 微博ID是: " + original_text_id)
+    taskLog.write("原文用户名是: " + original_user_name + " 用户id是:" + original_user_id + " 微博内容是: " + original_text
+                  + " 微博ID是: " + original_text_id + "\n")
+    return reply_list
+```
+## 回复一条评论
+使用微博[回复评论](https://open.weibo.com/wiki/2/comments/reply)的API，需要cid(评论id)和id(微博id)，以及access token登陆。
+``` python
+# 回复评论
+def replyMessageToComment(cid, id):
+    global taskLog
+    text = randomBubbleTea()
+    postData = urllib.parse.urlencode({'comment': text, 'cid': cid, 'id': id, 'access_token': access}).encode('utf-8')
+    try:
+        urllib.request.urlopen('https://api.weibo.com/2/comments/reply.json', postData, context=context)
+        print("已发送 '" + text + "' 至微博ID: " + id + " 评论ID: " + cid)
+        taskLog.write("已发送 '" + text + "' 至微博ID: " + id + " 评论ID: " + cid + "\n")
+    except urllib.error.URLError as e:
+        if hasattr(e, "code"):
+            print(e.code)
+            taskLog.write(e.code)
+        if hasattr(e, "reason"):
+            print(e.reason)
+            taskLog.write(e.reason)
+```
+其他小细节的修改已上传至github。
+# 奶茶列表
+## 一点点
+茉莉绿茶
 
-四季奶青 去冰/五分/波霸
+阿萨姆红茶
 
-可可芭蕾 去冰/三分/布丁
+四季春茶
 
-乌龙奶茶 去冰/无糖/波霸
+清香乌龙茶
 
-葡萄柚绿 去冰/三分/椰果
+抹茶
 
-四季玛奇朵 去冰/三分/燕麦
+黑糖红茶
 
-波霸奶茶 去冰/三分/冰激凌
+翡翠柠檬
 
-红茶玛奇朵/去冰/无糖/冰淇淋/珍波椰
+蜂蜜绿
 
-四季春玛奇朵/去冰/五分甜/布丁/冰淇淋
+养乐多绿
 
-冰淇淋红茶/去冰/三分甜/波霸/奶霜
+冰淇淋红茶
 
-阿华田 /去冰/无糖/冰淇淋/两颗布丁
+葡萄柚绿
 
-四季春玛奇朵/常温/三分甜/波霸
+百香绿
 
-四季春奶青/去冰/半糖/波霸
+波霸奶茶
 
-阿华田/去冰/三分甜/波霸/布丁
+波霸奶绿
 
-焦糖奶茶/热/三分甜/仙草
+波霸红/烏
 
-四季春奶青/去冰 /三分甜/燕麦
+波霸绿/青
 
-乌龙玛奇朵/去冰/微糖/波霸
+珍珠奶茶
 
-四季春/去冰/三分糖/珍波椰
+珍珠奶绿
 
-可可芭蕾/去冰/三份甜/布丁乌龙奶茶/去冰/无糖/波霸
+珍珠红/乌
 
-柠檬养乐多/去冰/五分糖
+珍珠绿/青
 
-古早味奶茶/去冰/半糖
+椰果奶茶
 
-### 喜茶
-多肉葡萄+芋圆波波+玫瑰青 少冰、少糖
+仙草奶冻
 
-芝芝桃桃+红柚粒+脆波波+芝士换冰淇淋 少冰、正常糖
+红豆ＱＱ奶茶
 
-芝芝芒芒+芝士换冰淇淋+芋圆波波 少冰、少糖
+四季如意
 
-芝芝莓莓+芦荟粒+芝士换酸奶 少冰、少少糖
+布丁奶茶
 
-奶茶波波冰+黑糖波波 少冰、少少糖
+燕麦奶茶
 
-阿华田波波冰+黑波波换黑糖奶冻 少冰、不另外加糖
+百香三重奏
 
-纯绿妍+脆啵啵+红柚果粒 少冰、少少糖
+咖啡奶冻
 
-布甸波波冰+芋圆波波+黑糖奶冻 少冰
+四季奶青
 
-金凤茶王+小丸子 五分糖
+乌龙奶茶
 
-### COCO
+红茶玛奇朵
+
+乌龙玛奇朵
+
+阿华田
+
+抹茶奶茶
+
+可可奶茶(黄金比例)
+
+焦糖奶茶
+
+黑糖奶茶
+
+金桔柠檬
+
+柠檬蜜
+
+柠檬养乐多
+
+季节限定：奶绿装芒
+
+季节限定：柚心动了
+
+季节限定：百香YOYO绿
+
+季节限定：芒果YOYO绿
+
+季节限定：花生豆花奶茶
+
+## 喜茶
+多肉葡萄+芋圆波波
+
+芝芝芒芒+芋圆波波
+
+芝芝莓莓桃
+
+奶茶波波冰+黑糖波波
+
+纯绿妍换牛乳茶底+桂花冻
+
+金凤茶王+脆波波
+
+雪山思乡龙眼季节限定：王榨油柑
+
+季节限定：双榨杨桃油柑
+
+冻暴柠
+
+多肉芒芒甘露
+
+原创生打椰椰奶冻
+
+满杯红柚
+
+烤黑糖波波牛乳
+## COCO
+上新：火焰蓝椰
+
+雪顶蜜恋桃桃
+
+白玉粉荔
+
+白玉荔枝茶
+
+白玉荔枝多多
+
+牛油果布丁
+
+鲜苹果百香
+
+星空葡萄
+
+荞麦轻奶茶
+
+荞麦轻茶
+
+芒芒绿茶
+
+芒果多多
+
+柠檬霸
+
+沙棘百香双响炮
+
+沙棘摇摇冻
+
+鲜芋奶茶+青稞+无糖
+
+铁观音珍珠茶拿铁 + 青稞 + 奶盖 + 芋头
+
+双球冰激凌红茶 + 奶霜 + 珍珠 去冰半糖
+
+鲜百香双响炮 + 椰果 少冰半糖
+
+鲜柠檬茶
+
+轻茶摇摇冻
+
+法式奶霜茗茶鲜芋牛奶西米露 + 红豆 + 香芋无糖少冰
+
+茉香奶茶 + 珍珠 + 仙草 去冰五分甜
+
 双球冰淇淋红茶+芋头+珍珠 去冰、无糖
-
-鲜芋茶拿铁+布丁+珍珠 去冰、微糖
-
-双球冰淇淋草莓+珍珠+椰果 去冰、半糖
-
-双球冰淇淋抹茶+芋头+珍珠 去冰、三分糖
 
 茉香奶茶+芋鲜+青稞+珍珠 去冰、无糖
 
 杨枝甘露+椰果 少冰
 
-鲜百香果双响炮+椰果 少冰、半糖
-
-鲜芋雪冰+珍珠+冰淇淋 无糖
-
-青茶奶霜+芋头+冰淇淋+珍珠
-
-莓莓绵雪冰+冰淇淋+珍珠
-
 红果小姐姐+奶霜 半糖
 
-### 茶百道
-桂花酒酿
+## 茶百道
+季节水果茶：茉莉白桃子
 
-招牌芋圆奶茶
+季节水果茶: 白桃子酪酪
 
-黑糖牛乳波波茶
+季节水果茶：鲜草莓酪酪
+
+芒芒生打椰
+
+生椰大满贯
 
 杨枝甘露
 
-琥珀烤糖奶茶
+西瓜啵啵
 
-青心乌龙奶茶
+百香凤梨
 
-奥利奥芝士
+手捣芒果绿
 
-金桔柠檬
+超级杯水果茶
 
-杨枝甘露/少冰/三分糖
+奥利奥蛋糕
 
-葡萄冻冻和葡萄芝士/芋圆/无糖
+抹茶红豆蛋糕
+
+招牌芋圆奶茶
 
 豆乳玉麒麟
 
-酒酿芋圆奶茶
+茉莉奶绿
 
-粉荔多肉
+黄金椰椰乌龙
 
-茉莉白桃
-### 蜜雪冰城
+血糯米奶茶
+
+奥利奥奶茶
+
+茉莉绿茶
+
+冰乌龙
+
+海盐芝士抹茶
+## 蜜雪冰城
 柠檬水！
 
 华夫冰淇淋

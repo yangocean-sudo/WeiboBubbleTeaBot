@@ -220,7 +220,7 @@ def randomBubbleTea():
         return text
 
 
-# 回复评论@
+# 获取评论@
 def getReplyId():
     # 返回两个值，评论id和原文id
     reply_list = []
