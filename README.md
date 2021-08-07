@@ -240,6 +240,54 @@ def replyMessageToComment(cid, id):
             taskLog.write(e.reason)
 ```
 其他小细节的修改已上传至github。
+# 8/7更新
+今天收到一名用户@了bot，并直言道："我只想喝茶百道。" 于是修改了随机奶茶的方法，先获取用户发布的内容，然后与奶茶品牌比对，如果比对成功，就会只推荐那个品牌的商品。
+``` python
+def randomBubbleTea(message):
+    global menu
+    if "一点点" in message:
+        randomNoTwo = random.randint(0, len(menu[0]) - 1)
+        text = '推荐一点点: ' + menu[0][randomNoTwo]
+        return text
+    elif "喜茶" in message:
+        randomNoTwo = random.randint(0, len(menu[1]) - 1)
+        text = '推荐喜茶: ' + menu[1][randomNoTwo]
+        return text
+    elif "COCO" in message or "coco" in message:
+        randomNoTwo = random.randint(0, len(menu[2]) - 1)
+        text = '推荐COCO: ' + menu[2][randomNoTwo]
+        return text
+    elif "茶百道" in message:
+        randomNoTwo = random.randint(0, len(menu[3]) - 1)
+        text = '推荐茶百道: ' + menu[3][randomNoTwo]
+        return text
+    elif "蜜雪" in message:
+        randomNoTwo = random.randint(0, len(menu[4]) - 1)
+        text = '推荐蜜雪冰城： ' + menu[4][randomNoTwo]
+        return text
+    else:
+        randomNoOne = random.randint(0, 7)
+        if randomNoOne == 0 or randomNoOne == 1:
+            randomNoTwo = random.randint(0, len(menu[0]) - 1)
+            text = '推荐一点点: ' + menu[0][randomNoTwo]
+            return text
+        elif randomNoOne == 2:
+            randomNoTwo = random.randint(0, len(menu[1]) - 1)
+            text = '推荐喜茶: ' + menu[1][randomNoTwo]
+            return text
+        elif randomNoOne == 3 or randomNoOne == 4:
+            randomNoTwo = random.randint(0, len(menu[2]) - 1)
+            text = '推荐COCO: ' + menu[2][randomNoTwo]
+            return text
+        elif randomNoOne == 5 or randomNoOne == 6:
+            randomNoTwo = random.randint(0, len(menu[3]) - 1)
+            text = '推荐茶百道: ' + menu[3][randomNoTwo]
+            return text
+        elif randomNoOne == 7:
+            randomNoTwo = random.randint(0, len(menu[4]) - 1)
+            text = '推荐蜜雪冰城： ' + menu[4][randomNoTwo]
+            return text
+```
 # 奶茶列表
 ## 一点点
 茉莉绿茶
