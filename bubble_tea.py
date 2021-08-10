@@ -251,7 +251,7 @@ def getReplyId():
     # 返回两个值，评论id和原文id
     reply_list = []
     # 官方API，可以查看最新一个@自己账号的评论
-    responseHandler = urllib.request.urlopen('https://api.weibo.com/2/comments/mentions.json?count=1&access_token='
+    responseHandler = urllib.request.urlopen('https://api.weibo.com/2/comments/mentions.json?count=0&access_token='
                                              + access, context=context)
     jsonData = json.loads(responseHandler.read().decode('utf-8'))
     comments = jsonData["comments"][0]
@@ -332,7 +332,6 @@ def tryToReplyNewMentions():
             replyMessageToUser(messageId, message_content)
         # 查看有没有新的评论@我
         commentId = getReplyId()
-        print(commentId)
         cid = commentId[0]
         comment_content = commentId[2]
         id = commentId[1]
